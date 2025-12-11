@@ -10,6 +10,9 @@ from concurrent import futures
 GO_SERVICE_URL = "http://localhost:8080/api/internal/cooling/updating"
 AUTH_TOKEN = "secret12" 
 
+INCOMING_AUTH_TOKEN = "secret12" 
+
+
 # Пул потоков для асинхронного выполнения
 executor = futures.ThreadPoolExecutor(max_workers=1)
 
@@ -75,6 +78,12 @@ def perform_calculation(request):
     """
     Принимает запрос, запускает расчет в фоне и сразу отвечает 200 OK.
     """
+    client_token = request.headers.get("Authorization")
+    if client_token != INCOMING_AUTH_TOKEN:
+        return Response(
+            {"error": "Требуется авторизация!"},
+            status=status.HTTP_401_UNAUTHORIZED
+        )
     try:
         data = request.data
         if "id" not in data:
